@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Visiteur Traqué</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: black;
+      color: #00ff00;
+      font-family: monospace;
+    }
+
+    #video {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+    }
+
+    .overlay {
+      background: rgba(0, 0, 0, 0.6);
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #info {
+      padding: 20px;
+      white-space: pre-wrap;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <video id="video" autoplay muted loop playsinline>
+    <source src="patpatrouille.mp4" type="video/mp4">
+    Votre navigateur ne supporte pas la lecture de vidéos HTML5.
+  </video>
+
+  <div class="overlay"></div>
+  <pre id="info">Connexion en cours...</pre>
+
+  <script>
+    async function getVisitorInfo() {
+      const ipData = await fetch('https://ipapi.co/json').then(res => res.json());
+
+      const gl = document.createElement('canvas').getContext('webgl');
+      const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+
+      const info = {
+        "IP Address": ipData.ip,
+        "Country": ipData.country_name,
+        "Region": ipData.region,
+        "City": ipData.city,
+        "ZIP Code": ipData.postal,
+        "Full Location": `${ipData.city}, ${ipData.region_code}, ${ipData.country_name}`,
+        "Latitude": ipData.latitude,
+        "Longitude": ipData.longitude,
+        "Timezone": ipData.timezone,
+        "Current Time": new Date().toLocaleString(),
+        "ISP": ipData.org,
+        "Browser Name": navigator.userAgent,
+        "Platform Name": navigator.platform,
+        "Browser Version": navigator.appVersion,
+        "Mobile/Tablet": /Mobi|Android/i.test(navigator.userAgent) ? "Yes" : "No",
+        "System Languages": navigator.languages.join(', '),
+        "Screen Width": screen.width + "px",
+        "Screen Height": screen.height + "px",
+        "Window Width": window.innerWidth + "px",
+        "Window Height": window.innerHeight + "px",
+        "Display Pixel Depth": screen.pixelDepth,
+        "Screen Orientation": screen.orientation.type,
+        "CPU Threads": navigator.hardwareConcurrency,
+        "Available Browser Memory": navigator.deviceMemory + "GB",
+        "GPU Vendor": gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
+        "GPU Info": gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL),
+      };
+
+      return Object.entries(info).map(([k, v]) => `${k}: ${v}`);
+    }
+
+    async function showLinesSlowly() {
+      const lines = await getVisitorInfo();
+      const target = document.getElementById('info');
+      target.textContent = '';
+      for (let i = 0; i < lines.length; i++) {
+        target.textContent += lines[i] + '\n';
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    }
+
+    showLinesSlowly();
+  </script>
+</body>
+</html>
